@@ -137,6 +137,55 @@ The API includes proper error handling for:
 4. Push to branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
+## Deployment
+Using nginx and ngrok for Local Deployment
+
+1. Install the nginx
+```
+sudo apt-get update
+sudo apt-get install nginx
+```
+
+2. Configure the nginx
+Create an nginx configuration file for the fastapi application in file named
+fastapi
+```
+server {
+    listen 80;
+    server_name localhost;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+Enable the configuration:
+```
+sudo ln -s /etc/nginx/sites-available/fastapi /etc/nginx/sites-enabled/
+sudo systemctl restart nginx
+```
+
+3. Install and configure ngrok
+```
+wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz
+tar -xvzf ngrok-v3-stable-linux-amd64.tgz
+sudo mv ngrok /usr/local/bin/
+ngrok authtoken YOUR_AUTHTOKEN
+ngrok http 80
+```
+
+4.Start the fastapi application
+```
+uvicorn main:app --host 127.0.0.1 --port 8000
+```
+
+5. Access the ngrok URL
+Use the ngrok URL provided to access your FastAPI application.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
