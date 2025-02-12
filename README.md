@@ -138,21 +138,42 @@ The API includes proper error handling for:
 5. Open a Pull Request
 
 ## Deployment
-Using nginx and ngrok for Local Deployment
+Using Google Cloud VM and Nginx for Deployment
 
-1. Install the nginx
+1. Set Up a Google Cloud VM Instance:
+  - Create a Google Cloud account and a new project.
+  - Create a VM instance with Ubuntu and allow HTTP/HTTPS traffic.
+
+2. Connect to Your VM:
+  - SSH into your VM instance from your local machine.
 ```
-sudo apt-get update
-sudo apt-get install nginx
+ssh your_username@your_server_ip
+```
+3. Install Dependencies on the VM:
+```
+sudo apt update
+sudo apt install python3 python3-venv python3-pip nginx
+pip install uvicorn
+```
+4. Deploy Your FastAPI Application:
+```
+git clone https://github.com/hng12-devbotops/fastapi-book-project.git
+cd fastapi-book-project
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --host 127.0.0.1 --port 8000 --daemon
+```
+5. Configure Nginx:
+```
+sudo nano /etc/nginx/sites-available/fastapi
 ```
 
-2. Configure the nginx
-Create an nginx configuration file for the fastapi application in file named
-fastapi
+Add the following configuration:
 ```
 server {
     listen 80;
-    server_name localhost;
+    server_name your_domain_or_ip;
 
     location / {
         proxy_pass http://127.0.0.1:8000;
@@ -168,23 +189,6 @@ Enable the configuration:
 sudo ln -s /etc/nginx/sites-available/fastapi /etc/nginx/sites-enabled/
 sudo systemctl restart nginx
 ```
-
-3. Install and configure ngrok
-```
-wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz
-tar -xvzf ngrok-v3-stable-linux-amd64.tgz
-sudo mv ngrok /usr/local/bin/
-ngrok authtoken YOUR_AUTHTOKEN
-ngrok http 80
-```
-
-4.Start the fastapi application
-```
-uvicorn main:app --host 127.0.0.1 --port 8000
-```
-
-5. Access the ngrok URL
-Use the ngrok URL provided to access your FastAPI application.
 
 ## License
 
