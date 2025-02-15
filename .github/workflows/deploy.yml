@@ -32,5 +32,6 @@ jobs:
         run: |
           echo "$SSH_PRIVATE_KEY" > private_key
           chmod 600 private_key
+          echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
           scp -i private_key -r . $SERVER_USER@$SERVER_IP:/home/$SERVER_USER/fastapi-book-project
           ssh -i private_key $SERVER_USER@$SERVER_IP 'cd /home/$SERVER_USER/fastapi-book-project && source venv/bin/activate && uvicorn main:app --host 127.0.0.1 --port 8000'
