@@ -34,14 +34,23 @@ jobs:
           chmod 600 private_key
           mkdir -p ~/.ssh
           echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
-          ssh -i private_key "$SERVER_USER@$SERVER_IP" "echo 'SERVER_USER: $SERVER_USER'"
-          ssh -i private_key "$SERVER_USER@$SERVER_IP" "sudo mkdir -p /home/$SERVER_USER/fastapi-book-project && sudo chown -R $SERVER_USER:$SERVER_USER /home/$SERVER_USER/fastapi-book-project"
-          rsync -avz --exclude '.git' --exclude 'venv' -e "ssh -i private_key" . "$SERVER_USER@$SERVER_IP:/home/$SERVER_USER/fastapi-book-project"
+
           ssh -i private_key "$SERVER_USER@$SERVER_IP" << 'EOF'
-            pkill -f "uvicorn main:app"
+            # Kill any existing process
+            pkill -9 -f "uvicorn main:app" || echo "No process found"
+            
+            # Ensure project directory exists
+            mkdir -p /home/$SERVER_USER/fastapi-book-project
             cd /home/$SERVER_USER/fastapi-book-project
-            python -m venv venv
+            
+            # Create and activate virtual environment
+            python3 -m venv venv
             source venv/bin/activate
+            
+            # Update dependencies
+            pip install --upgrade pip
             pip install -r requirements.txt
-            nohup uvicorn main:app --host 127.0.0.1 --port 8000 &
+
+            # Start the application in the background with logging
+            nohup uvicorn main:app --host 0.0.0.0 --port 8000 > uvicorn.log 2>&1 &
           EOF
