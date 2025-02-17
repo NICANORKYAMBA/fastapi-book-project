@@ -35,22 +35,34 @@ jobs:
           mkdir -p ~/.ssh
           echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
 
+          echo "Checking SERVER_USER value: $SERVER_USER"
+
+          # Ensure the directory exists and transfer files
+          rsync -avz --exclude '.git' --exclude 'venv' -e "ssh -i private_key" . "$SERVER_USER@$SERVER_IP:/home/$SERVER_USER/fastapi-book-project"
+
           ssh -i private_key "$SERVER_USER@$SERVER_IP" << 'EOF'
-            # Kill any existing process
-            pkill -9 -f "uvicorn main:app" || echo "No process found"
-            
+            # Define project directory
+            PROJECT_DIR="/home/$SERVER_USER/fastapi-book-project"
+            if [ "$SERVER_USER" == "root" ]; then
+              PROJECT_DIR="/root/fastapi-book-project"
+            fi
+
             # Ensure project directory exists
-            mkdir -p /home/$SERVER_USER/fastapi-book-project
-            cd /home/$SERVER_USER/fastapi-book-project
-            
-            # Create and activate virtual environment
+            sudo mkdir -p "$PROJECT_DIR"
+            sudo chown -R "$SERVER_USER":"$SERVER_USER" "$PROJECT_DIR"
+            cd "$PROJECT_DIR" || exit
+
+            # Kill existing process
+            pkill -9 -f "uvicorn main:app" || echo "No process found"
+
+            # Setup virtual environment
             python3 -m venv venv
             source venv/bin/activate
-            
-            # Update dependencies
+
+            # Install dependencies
             pip install --upgrade pip
             pip install -r requirements.txt
 
-            # Start the application in the background with logging
+            # Start the application in the background
             nohup uvicorn main:app --host 0.0.0.0 --port 8000 > uvicorn.log 2>&1 &
           EOF
