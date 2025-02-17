@@ -40,6 +40,8 @@ jobs:
           ssh -i private_key "$SERVER_USER@$SERVER_IP" << 'EOF'
             pkill -f "uvicorn main:app"
             cd /home/$SERVER_USER/fastapi-book-project
+            python -m venv venv
             source venv/bin/activate
+            pip install -r requirements.txt
             nohup uvicorn main:app --host 127.0.0.1 --port 8000 &
           EOF
