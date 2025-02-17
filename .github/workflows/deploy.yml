@@ -36,6 +36,5 @@ jobs:
           echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
           ssh -i private_key "$SERVER_USER@$SERVER_IP" "echo 'SERVER_USER: $SERVER_USER'"
           ssh -i private_key "$SERVER_USER@$SERVER_IP" "sudo mkdir -p /home/$SERVER_USER/fastapi-book-project && sudo chown -R $SERVER_USER:$SERVER_USER /home/$SERVER_USER/fastapi-book-project"
-          ssh -i private_key "$SERVER_USER@$SERVER_IP" "pkill -f 'uvicorn main:app --host 127.0.0.1 --port 8000'"
           rsync -avz --exclude '.git' --exclude 'venv' -e "ssh -i private_key" . "$SERVER_USER@$SERVER_IP:/home/$SERVER_USER/fastapi-book-project"
           ssh -i private_key "$SERVER_USER@$SERVER_IP" "cd /home/$SERVER_USER/fastapi-book-project && source venv/bin/activate && uvicorn main:app --host 127.0.0.1 --port 8000"
