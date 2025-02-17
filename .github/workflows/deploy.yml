@@ -39,6 +39,7 @@ jobs:
           rsync -avz --exclude '.git' --exclude 'venv' -e "ssh -i private_key" . "$SERVER_USER@$SERVER_IP:/home/$SERVER_USER/fastapi-book-project"
           ssh -i private_key "$SERVER_USER@$SERVER_IP" << 'EOF'
             pkill -f "uvicorn main:app"
+            SERVER_USER: ${{ secrets.SERVER_USER }}
             cd /home/$SERVER_USER/fastapi-book-project
             python -m venv venv
             source venv/bin/activate
